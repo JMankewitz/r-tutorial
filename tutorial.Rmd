@@ -44,7 +44,7 @@ In order to do that, we'll start by introducing the concepts of **tidy data** an
 All of this is in the `tidyverse` package, which we'll load now. 
 
 ```{r setup, include=FALSE}
-# install.packages(c("tidyverse", "palmerpenguins", "ggthemes"))
+#install.packages(c("tidyverse", "palmerpenguins", "ggthemes"))
 library(tidyverse)
 
 library(palmerpenguins)
@@ -62,7 +62,7 @@ And if you know that data are formatted this way, then you can do amazing things
 Here's an example of a tidy dataset (note: our "datasets" are stored in "dataframes," which in the tidyverse are called "tibbles" - yes, it's a little confusing):
 
 ```{r}
-
+palmerpenguins::penguins
 ```
 
 Each row is one observation (a penguin) and each column is a variable (e.g. bill length) with a value for that observation (e.g. This Adelie penguin's bill length is 39 mm).
@@ -74,11 +74,15 @@ Everything you typically want to do in statistical programming uses **functions*
 What's the mean bill length of the penguins in this dataset? We could pull out the `bill_length_mm` column and take the mean of those values with:
 
 ```{r}
+round(mean(penguins$bill_length_mm, na.rm = TRUE))
 ```
 
 Equivalently, we can use the pipe symbol `|>` to write:
 
 ```{r}
+penguins$bill_length_mm |>
+  mean(na.rm = TRUE) |>
+  round()
 
 ```
 
@@ -89,10 +93,19 @@ That's not very useful yet, but when you start **nesting** functions, it gets be
 
 ```{r}
 # make a function that divides by 25.4
+to_inches <- function(mm){
+  mm/25.4
+}
 
 # first compute mean height in inches the normal, nested way  
+round(mean(to_inches(penguins$bill_length_mm), na.rm = TRUE), digits = 2)
 
 # now how do we do this with pipes? 
+penguins$bill_length_mm |>
+  to_inches() |>
+  mean(na.rm = TRUE) |>
+  round(digit = 2)
+
 
 ```
 
@@ -111,6 +124,9 @@ Let's make a really simple ggplot:
 
 ```{r}
 # plot penguins mass by bill length
+penguins |>
+  ggplot(aes(x = body_mass_g, y = bill_length_mm, color = species)) + 
+  geom_point()
 
 ```
 
@@ -118,6 +134,10 @@ Maybe the key awesome thing that works really well in ggplot is something called
 
 ```{r}
 # try faceting the above plot by sex
+penguins |>
+  ggplot(aes(x = body_mass_g, y = bill_length_mm, color = species)) + 
+  geom_point() + 
+  facet_wrap(~sex)
 
 ```
 
