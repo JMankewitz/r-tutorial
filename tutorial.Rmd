@@ -62,7 +62,7 @@ And if you know that data are formatted this way, then you can do amazing things
 Here's an example of a tidy dataset (note: our "datasets" are stored in "dataframes," which in the tidyverse are called "tibbles" - yes, it's a little confusing):
 
 ```{r}
-
+palmerpenguins::penguins
 ```
 
 Each row is one observation (a penguin) and each column is a variable (e.g. bill length) with a value for that observation (e.g. This Adelie penguin's bill length is 39 mm).
@@ -74,12 +74,15 @@ Everything you typically want to do in statistical programming uses **functions*
 What's the mean bill length of the penguins in this dataset? We could pull out the `bill_length_mm` column and take the mean of those values with:
 
 ```{r}
+round(mean(penguins$bill_length_mm, na.rm = T))
 ```
 
 Equivalently, we can use the pipe symbol `|>` to write:
 
 ```{r}
-
+penguins$bill_length_mm |> 
+  mean(na.rm = T) |> 
+  round()
 ```
 
 The `|>|` means that whatever is before it is passed as the first argument to the function after it.
@@ -89,11 +92,16 @@ That's not very useful yet, but when you start **nesting** functions, it gets be
 
 ```{r}
 # make a function that divides by 25.4
-
+to_inches <- function (mm) {
+  mm / 25.4
+}
 # first compute mean height in inches the normal, nested way  
-
+round(mean(to_inches(penguins$bill_length_mm), na.rm = T), digits = 2)
 # now how do we do this with pipes? 
-
+penguins$bill_length_mm |> 
+  to_inches() |> 
+  mean(na.rm = T) |> 
+  round(digits = 2)
 ```
 
 <!-- ----------------------------------------------------------------------- -->
@@ -111,14 +119,19 @@ Let's make a really simple ggplot:
 
 ```{r}
 # plot penguins mass by bill length
-
+penguins |> 
+  ggplot(aes(x = body_mass_g, y = bill_length_mm, color = species)) + 
+  geom_point()
 ```
 
 Maybe the key awesome thing that works really well in ggplot is something called "faceting" - where you make lots of little plots that are all the same. You do this with `facet_wrap` or `facet_grid`.
 
 ```{r}
 # try faceting the above plot by sex
-
+penguins |> 
+  ggplot(aes(x = body_mass_g, y = bill_length_mm, color = species)) + 
+  geom_point() +
+  facet_wrap(~sex)
 ```
 
 
@@ -152,13 +165,13 @@ Inspect the various variables before you start any analysis. Lots of people reco
 
 
 ```{r}
-
+sgf
 ```
 
 I prefer interactive tools like `View` or `DT::datatable` (which I really like, especially in knitted reports).
 
 ```{r, eval=FALSE}
-
+View(sgf)
 ```
 
 ## Filtering & Mutating
@@ -177,7 +190,7 @@ OK, so filtering:
 
 ```{r}
 # try to filter SGF so we just get the two year olds
-
+sgf |> filter(age >= 2, age < 3)
 ```
 
 ** EXERCISE**. Filter out only the "face" trial (item) in the "Label" condition (condition).
@@ -194,7 +207,8 @@ Next up, *adding columns*. You might do this perhaps to compute some kind of der
 
 ```{r}
 # add an age group column using the `cut` function
-
+sgf <- sgf |>  
+  mutate(age_group = cut(age, 2:5, include.lowest = T))
 ```
 
 ## Standard descriptives using `summarise` and `group_by`
